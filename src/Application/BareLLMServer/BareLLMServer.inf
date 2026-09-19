@@ -1,0 +1,24 @@
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = BareLLMServer
+  FILE_GUID                      = 2A7D5E61-93B4-4F82-A6C9-1E5B37D8402F
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 0.1
+  ENTRY_POINT                    = UefiMain
+
+[Sources]
+  BareLLMServer.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  BareLLMServer.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  DebugLib
+
+[Pcd]
+  gBareLLMConfigGuid.PcdBareLLMMaxConnections

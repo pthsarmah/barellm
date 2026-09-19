@@ -1,0 +1,47 @@
+[Defines]
+  DEC_SPECIFICATION   = 0x0001001C
+  PACKAGE_NAME        = BareLLMServer
+  PACKAGE_GUID        = 8D6A7F31-4C2B-4A91-9E53-7B2C19D84F60
+  PACKAGE_VERSION     = 0.1
+
+[Includes]
+  Include
+  Include/Arch
+  Include/Model
+  Include/Memory
+  Include/Runtime
+
+[Guids]
+  gBareLLMPackageGuid = { 0x8D6A7F31, 0x4C2B, 0x4A91, { 0x9E, 0x53, 0x7B, 0x2C, 0x19, 0xD8, 0x4F, 0x60 } }
+  gBareLLMConfigGuid  = { 0x91EAFB52, 0x6D8C, 0x47B3, { 0xA2, 0xD1, 0x5F, 0x78, 0x3C, 0x90, 0x4E, 0x21 } }
+  gBareLLMModelGuid   = { 0x6C2D9A14, 0xAB73, 0x4E65, { 0x8F, 0x21, 0x39, 0xD5, 0x7C, 0x8B, 0x10, 0x46 } }
+
+[Protocols]
+  gBareLLMInferenceProtocolGuid = { 0x4F3C8E21, 0xB7A5, 0x4D96, { 0x8A, 0x32, 0x1D, 0x6E, 0x59, 0xC7, 0x40, 0xBF } }
+  gBareLLMModelProtocolGuid     = { 0xB82A6173, 0x2C94, 0x45D8, { 0x96, 0xE1, 0x7F, 0x3B, 0x0C, 0xA5, 0x29, 0x84 } }
+
+[LibraryClasses]
+  BareLLMCoreLib
+  BareLLMMemoryLib
+  BareLLMModelLib
+  BareLLMTokenizerLib
+  BareLLMComputeLib
+  BareLLMRuntimeLib
+  BareLLMConsoleLib
+
+[PcdsFixedAtBuild]
+  gBareLLMConfigGuid.PcdBareLLMMaxMemory|0x0000000080000000|UINT64|0x00000001
+
+  gBareLLMConfigGuid.PcdBareLLMMaxContextTokens|4096|UINT32|0x00000002
+
+  gBareLLMConfigGuid.PcdBareLLMMaxOutputTokens|512|UINT32|0x00000003
+
+  gBareLLMConfigGuid.PcdBareLLMMaxConnections|4|UINT32|0x00000004
+
+  gBareLLMConfigGuid.PcdBareLLMDebug|TRUE|BOOLEAN|0x00000005
+
+  gBareLLMConfigGuid.PcdBareLLMConsoleMode|TRUE|BOOLEAN|0x00000006
+
+  gBareLLMConfigGuid.PcdBareLLMModelPath|L"FS0:\\Models\\model.bllm"|VOID*|0x00000007
+
+  gBareLLMConfigGuid.PcdBareLLMTokenizerPath|L"FS0:\\Models\\tokenizer.btl"|VOID*|0x00000008

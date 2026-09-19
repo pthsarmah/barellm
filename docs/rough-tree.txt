@@ -1,0 +1,38 @@
+BareLLM/
+│
+├── BareLLM.dec
+│
+├── Include/
+│   └── BareLLM/
+│       ├── BareLLMConfig.h
+│       ├── BareLLMModel.h
+│       ├── BareLLMTokenizer.h
+│       ├── BareLLMInference.h
+│       └── BareLLMProtocol.h
+│
+├── Application/
+│   └── BareLLMServer/
+│       ├── BareLLMServer.inf
+│       ├── BareLLMServer.c
+│       └── BareLLMServer.h
+│
+├── Library/
+│   ├── ModelLib/
+│   │   ├── ModelLib.inf
+│   │   └── ModelLib.c
+│   │
+│   ├── TokenizerLib/
+│   │   ├── TokenizerLib.inf
+│   │   └── TokenizerLib.c
+│   │
+│   └── InferenceLib/
+│       ├── InferenceLib.inf
+│       └── InferenceLib.c
+│
+├── Protocol/
+│   └── BareLLMProtocol/
+│       ├── BareLLMProtocol.inf
+│       └── BareLLMProtocol.c
+│
+├── BareLLM.dsc
+└── BareLLM.fdf

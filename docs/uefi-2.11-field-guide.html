@@ -1,0 +1,704 @@
+<title>UEFI 2.11 Field Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #F2F4F7;
+    --surface: #FFFFFF;
+    --surface-2: #E9EDF2;
+    --ink: #1A222E;
+    --muted: #5B6675;
+    --line: #D8DEE6;
+    --copper: #A85D1E;
+    --copper-soft: #F3E4D4;
+    --boot: #0E7C7B;
+    --boot-soft: #DDEEED;
+    --rt: #6D5AA8;
+    --rt-soft: #E7E2F3;
+    --danger: #A83A2E;
+    --danger-soft: #F5E0DD;
+    --code-bg: #1E2733;
+    --code-ink: #D9E0EA;
+    --code-accent: #E8A05C;
+    --code-comment: #7C8DA3;
+    --code-kw: #7FC8C4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E141C;
+      --surface: #151D28;
+      --surface-2: #1C2633;
+      --ink: #D8DEE7;
+      --muted: #8792A2;
+      --line: #26303D;
+      --copper: #E08A45;
+      --copper-soft: #33261A;
+      --boot: #45B8B0;
+      --boot-soft: #14302E;
+      --rt: #A392E0;
+      --rt-soft: #262038;
+      --danger: #E06A5A;
+      --danger-soft: #35201D;
+      --code-bg: #10161F;
+      --code-ink: #C9D2DE;
+      --code-accent: #E8A05C;
+      --code-comment: #6B7A8F;
+      --code-kw: #7FC8C4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E141C;
+    --surface: #151D28;
+    --surface-2: #1C2633;
+    --ink: #D8DEE7;
+    --muted: #8792A2;
+    --line: #26303D;
+    --copper: #E08A45;
+    --copper-soft: #33261A;
+    --boot: #45B8B0;
+    --boot-soft: #14302E;
+    --rt: #A392E0;
+    --rt-soft: #262038;
+    --danger: #E06A5A;
+    --danger-soft: #35201D;
+    --code-bg: #10161F;
+    --code-ink: #C9D2DE;
+    --code-accent: #E8A05C;
+    --code-comment: #6B7A8F;
+    --code-kw: #7FC8C4;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Spline Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .frame {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 1.5rem 5rem;
+  }
+  @media (min-width: 1080px) {
+    .frame { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 3rem; }
+    header.masthead { grid-column: 1 / -1; }
+  }
+
+  /* ---------- masthead ---------- */
+  header.masthead {
+    padding: 3.5rem 0 2.5rem;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 2.5rem;
+  }
+  .eyebrow {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+  .standfirst {
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 1.06rem;
+    margin: 0 0 1.5rem;
+  }
+  .spec-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .spec-facts b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- toc ---------- */
+  nav.toc { display: none; }
+  @media (min-width: 1080px) {
+    nav.toc {
+      display: block;
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+      font-size: 0.85rem;
+      padding-top: 0.4rem;
+    }
+    nav.toc .toc-label {
+      font-family: "Spline Sans Mono", ui-monospace, monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+    nav.toc a {
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      gap: 0.6rem;
+      line-height: 1.35;
+    }
+    nav.toc a:hover, nav.toc a:focus-visible { color: var(--copper); }
+    nav.toc .n {
+      font-family: "Spline Sans Mono", ui-monospace, monospace;
+      font-size: 0.7rem;
+      color: var(--copper);
+      min-width: 1.4em;
+      padding-top: 0.12em;
+    }
+  }
+
+  /* ---------- sections ---------- */
+  main { min-width: 0; }
+  section { margin-bottom: 3.5rem; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    margin: 0 0 0.35rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    text-wrap: balance;
+  }
+  h2 .n {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--copper);
+  }
+  .spec-ref {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin: 0 0 1.1rem;
+  }
+  .spec-ref a { color: inherit; }
+  h3 { font-size: 1.08rem; font-weight: 600; margin: 1.8rem 0 0.5rem; }
+  p { max-width: 68ch; margin: 0 0 1rem; }
+  ul, ol { max-width: 68ch; padding-left: 1.3rem; margin: 0 0 1rem; }
+  li { margin-bottom: 0.35rem; }
+  a { color: var(--copper); }
+  strong { font-weight: 600; }
+
+  code {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 6px;
+    border-left: 3px solid var(--copper);
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin: 0 0 1rem;
+  }
+  pre code { background: none; padding: 0; white-space: pre; font-size: inherit; color: inherit; }
+  pre .c { color: var(--code-comment); }
+  pre .k { color: var(--code-kw); }
+  pre .a { color: var(--code-accent); }
+
+  /* ---------- tags ---------- */
+  .tag {
+    display: inline-block;
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.15em 0.55em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .tag.boot { background: var(--boot-soft); color: var(--boot); }
+  .tag.rt   { background: var(--rt-soft); color: var(--rt); }
+  .tag.gone { background: var(--danger-soft); color: var(--danger); }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--copper);
+    background: var(--surface);
+    border-radius: 0 6px 6px 0;
+    padding: 0.9rem 1.2rem;
+    margin: 0 0 1rem;
+    max-width: 72ch;
+  }
+  .callout.warn { border-left-color: var(--danger); }
+  .callout .label {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 0.3rem;
+  }
+  .callout.warn .label { color: var(--danger); }
+  .callout p { margin: 0; max-width: none; }
+  .callout p + p { margin-top: 0.5rem; }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; margin: 0 0 1rem; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  th {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  td code { white-space: nowrap; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- boot timeline diagram ---------- */
+  .timeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding: 0.25rem 0 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .phase {
+    flex: 1 0 auto;
+    min-width: 118px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 0.7rem 0.85rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .phase + .phase { margin-left: 1.4rem; }
+  .phase + .phase::before {
+    content: "";
+    position: absolute;
+    left: -1.4rem;
+    top: 50%;
+    width: 1.4rem;
+    height: 1px;
+    background: var(--muted);
+  }
+  .phase + .phase::after {
+    content: "";
+    position: absolute;
+    left: -0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    border-left-color: var(--muted);
+  }
+  .phase .ph-name {
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .phase .ph-desc { font-size: 0.72rem; color: var(--muted); line-height: 1.35; }
+  .phase.firmware { border-top: 3px solid var(--muted); }
+  .phase.yours { border-top: 3px solid var(--boot); }
+  .phase.exit { border-top: 3px solid var(--danger); }
+  .phase.owned { border-top: 3px solid var(--copper); background: var(--copper-soft); }
+
+  /* ---------- memory map diagram ---------- */
+  .memmap { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin: 0 0 0.5rem; background: var(--surface); }
+  .memrow { display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+  .memrow:last-child { border-bottom: none; }
+  .memrow .swatch { width: 14px; align-self: stretch; flex: none; }
+  .memrow .body { padding: 0.5rem 0.9rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; align-items: baseline; min-width: 0; }
+  .memrow .mtype { font-family: "Spline Sans Mono", ui-monospace, monospace; font-size: 0.8rem; font-weight: 600; }
+  .memrow .mdesc { font-size: 0.8rem; color: var(--muted); }
+  .sw-free { background: var(--boot); }
+  .sw-keep { background: var(--rt); }
+  .sw-cond { background: var(--copper); }
+  .sw-never { background: var(--danger); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
+  .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  /* ---------- checklist ---------- */
+  .checklist { counter-reset: step; list-style: none; padding: 0; max-width: 72ch; }
+  .checklist li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 0.9rem 2.6rem;
+    margin: 0;
+  }
+  .checklist li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.1em;
+    font-family: "Spline Sans Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--copper);
+  }
+  .checklist li::after {
+    content: "";
+    position: absolute;
+    left: 0.62em;
+    top: 1.7em;
+    bottom: 0.2em;
+    width: 1px;
+    background: var(--line);
+  }
+  .checklist li:last-child::after { display: none; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  footer p { max-width: none; }
+  :focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+</style>
+
+<div class="frame">
+<header class="masthead">
+  <p class="eyebrow">baremetallm · firmware reference</p>
+  <h1>UEFI 2.11 Field Guide</h1>
+  <p class="standfirst">This guide gives the parts of the UEFI specification that apply when your EFI application is not a bootloader for a different OS. Your application <em>is</em> the OS. The target is LLM inference on bare metal. You must allocate large buffers, read the weight files quickly, get a framebuffer, and take full control of the machine.</p>
+  <div class="spec-facts">
+    <span>spec <b>UEFI 2.11</b> (Dec 2024, latest)</span>
+    <span>revision word <b class="num">0x0002_006E</b> ((2&lt;&lt;16)|110)</span>
+    <span>companion <b>PI 1.9</b> (edk2 internals)</span>
+    <span>target <b>x86-64</b></span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <div class="toc-label">Contents</div>
+  <ol>
+    <li><a href="#map"><span class="n">1</span>Specification map</a></li>
+    <li><a href="#lifecycle"><span class="n">2</span>The application lifecycle</a></li>
+    <li><a href="#env"><span class="n">3</span>The x64 environment and ABI</a></li>
+    <li><a href="#systable"><span class="n">4</span>The System Table</a></li>
+    <li><a href="#memory"><span class="n">5</span>Memory services</a></li>
+    <li><a href="#protocols"><span class="n">6</span>Protocols and handles</a></li>
+    <li><a href="#weights"><span class="n">7</span>Load the model weights</a></li>
+    <li><a href="#console"><span class="n">8</span>Console and framebuffer</a></li>
+    <li><a href="#exit"><span class="n">9</span>ExitBootServices</a></li>
+    <li><a href="#after"><span class="n">10</span>After the firmware</a></li>
+    <li><a href="#secureboot"><span class="n">11</span>Secure Boot</a></li>
+    <li><a href="#toolchain"><span class="n">12</span>Toolchain notes</a></li>
+    <li><a href="#checklist"><span class="n">13</span>Boot checklist</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="map">
+  <h2><span class="n">1</span>Specification map — the parts to read and the parts to ignore</h2>
+  <p class="spec-ref">UEFI 2.11, full TOC · <a href="https://uefi.org/specs/UEFI/2.11/">uefi.org/specs/UEFI/2.11</a></p>
+  <p>The specification has approximately 2,500 pages in 39 chapters and 18 appendices. Most of the content is for firmware implementers and driver writers. An EFI application that takes control of the machine needs only six chapters. These chapters give almost all of the necessary data:</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Ch.</th><th>Title</th><th>Why it is important</th></tr></thead>
+      <tbody>
+        <tr><td class="num">2</td><td>Overview</td><td>The boot phases, the x64 handoff state, the calling convention, and the data types. Read all of this chapter.</td></tr>
+        <tr><td class="num">4</td><td>EFI System Table</td><td>The entry point signature, the System Table, and the configuration tables. The ACPI pointer is in the configuration tables.</td></tr>
+        <tr><td class="num">7</td><td>Boot Services</td><td>Memory allocation, the memory map, protocols, events and TPL, and <code>ExitBootServices()</code>. This is the most important chapter.</td></tr>
+        <tr><td class="num">8</td><td>Runtime Services</td><td>The services that continue after you take control: variables, time, reset, and the virtual address map.</td></tr>
+        <tr><td class="num">9, 12, 13</td><td>Loaded Image · Console · Media Access</td><td>How to find your own image, write text, get the GOP framebuffer, and read weight files from a disk.</td></tr>
+        <tr><td class="num">5</td><td>GPT Disk Layout</td><td>Read this chapter only if you keep the weights in a raw partition and not in a FAT filesystem (see Section 7).</td></tr>
+        <tr><td class="num">32, 37</td><td>Secure Boot · Secure Technologies</td><td>Read these chapters quickly. You must know enough to sign your image, or to set Secure Boot to OFF on development hardware.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>You can ignore these parts for this project: the UEFI Driver Model (Chapter 11), all networking (Chapters 24–31), HII (Chapters 33–35), the EBC virtual machine (Chapter 22), and Redfish (Chapter 31). Note: <em>multiprocessor startup is not in this specification</em>. <code>EFI_MP_SERVICES_PROTOCOL</code> is in the PI 1.9 specification, and edk2 has an implementation. This protocol is important for multi-core inference (Section 10).</p>
+  <p>Changes from 2.10: UEFI 2.11 adds new hash and signature algorithms for Secure Boot, and makes the implementation guidance more clear. The application model is the same. Code written for the 2.8 interfaces and later operates without changes.</p>
+</section>
+
+<section id="lifecycle">
+  <h2><span class="n">2</span>The application lifecycle</h2>
+  <p class="spec-ref">§2.1.1–2.1.3 UEFI Images · §7.4 Image Services</p>
+  <p>Your binary is a PE32+ image with the subsystem type <code>EFI_APPLICATION</code> or OS-loader. The only difference between the two types is the subsystem field. An OS loader is an application that will call <code>ExitBootServices()</code>. The firmware loads the image from the EFI System Partition, applies the relocations, and calls the entry point. All boot services are available at this time.</p>
+  <div class="timeline" role="img" aria-label="Boot timeline: firmware phases SEC, PEI, DXE, BDS, then your EFI app, ExitBootServices, then the LLM runtime controls the machine">
+    <div class="phase firmware"><span class="ph-name">SEC/PEI/DXE</span><span class="ph-desc">Firmware initialization (PI specification)</span></div>
+    <div class="phase firmware"><span class="ph-name">BDS</span><span class="ph-desc">The boot manager selects <code>BOOTX64.EFI</code></span></div>
+    <div class="phase yours"><span class="ph-name">efi_main()</span><span class="ph-desc">Boot services: allocate RAM, load the weights, set the video mode</span></div>
+    <div class="phase exit"><span class="ph-name">ExitBootServices</span><span class="ph-desc">This step is permanent</span></div>
+    <div class="phase owned"><span class="ph-name">LLM runtime</span><span class="ph-desc">You control the CPU, the RAM, and the devices</span></div>
+  </div>
+  <p>The default boot path needs no configuration. The firmware runs <code>\EFI\BOOT\BOOTX64.EFI</code> from a FAT-formatted ESP on removable or fixed media (§3.5.1.1). For development, a FAT32 USB stick with this one file is a full installation. A QEMU/OVMF disk image with the same path is also sufficient.</p>
+  <pre><code><span class="k">EFI_STATUS</span> <span class="k">EFIAPI</span> <span class="a">efi_main</span>(<span class="k">EFI_HANDLE</span> ImageHandle, <span class="k">EFI_SYSTEM_TABLE</span> *SystemTable);
+<span class="c">// ImageHandle: the handle of your image (it has EFI_LOADED_IMAGE_PROTOCOL)</span>
+<span class="c">// SystemTable: the access point to all other services (§4)</span>
+<span class="c">// If you return from efi_main, the firmware unloads the app.</span>
+<span class="c">// After ExitBootServices, do not return.</span></code></pre>
+  <div class="callout warn">
+    <div class="label">Warning — the watchdog timer</div>
+    <p>Disable the watchdog timer immediately: <code>BS-&gt;SetWatchdogTimer(0, 0, 0, NULL)</code> (§7.5.1). The firmware starts a <strong>5-minute watchdog timer</strong> before it launches a boot option. If your application does not call <code>ExitBootServices()</code> before the timer expires, the platform does a reset. This failure is easy to cause when you load weight files of many gigabytes.</p>
+  </div>
+</section>
+
+<section id="env">
+  <h2><span class="n">3</span>The x64 environment and the calling convention</h2>
+  <p class="spec-ref">§2.3.1 Data Types · §2.3.4 x64 Platforms</p>
+  <p>This is the machine state at your entry point (§2.3.4). This state is your runtime contract:</p>
+  <ul>
+    <li><strong>Long mode, 64-bit.</strong> Paging is on. The full UEFI memory map is <strong>identity-mapped</strong> (virtual address = physical address). Some regions can be without the W or X attributes.</li>
+    <li><strong>One processor.</strong> Only the BSP operates. The application processors are stopped. You can start them (Section 10).</li>
+    <li><strong>Interrupts are on</strong>, but only the firmware timer uses them. There are no interrupt services for your application. The selectors are flat. The firmware owns the GDT and the IDT.</li>
+    <li><strong>Stack:</strong> a minimum of 128 KiB, with 16-byte alignment. The stack can be non-executable. Inference call chains are deep, and local variables can be large. Put all large data on the heap.</li>
+    <li><strong>FPU/SSE:</strong> the x87 control word is <code>0x037F</code>. MXCSR is <code>0x1F80</code> (all exceptions are masked). SSE is available. <strong>The AVX and AVX-512 state is not enabled.</strong> You must set <code>CR4.OSXSAVE</code> and XCR0 before you run an AVX matmul kernel (Section 10).</li>
+  </ul>
+  <h3>The calling convention</h3>
+  <p>All UEFI interfaces use the <strong>Microsoft x64 ABI</strong> (§2.3.4.2). The arguments go in RCX, RDX, R8, and R9, with 32 bytes of shadow space. The stack has 16-byte alignment at the call. The return value goes in RAX. Thus you compile with <code>-target x86_64-unknown-windows</code>, or you mark the functions <code>EFIAPI</code> / <code>__attribute__((ms_abi))</code>. Do not mix this ABI with the System&nbsp;V ABI of a usual Linux toolchain. That error causes an immediate crash. At the handoff, RCX = ImageHandle and RDX = the System Table pointer.</p>
+  <h3>Data types you must know (§2.3.1)</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Type</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>UINTN / INTN</code></td><td>The native width: 8 bytes on x64. UEFI uses this type for sizes, keys, and indexes.</td></tr>
+        <tr><td><code>CHAR16</code></td><td>A UCS-2 character. <strong>All UEFI strings are 16-bit</strong>: <code>L"like this"</code>. The console newline is <code>L"\r\n"</code>.</td></tr>
+        <tr><td><code>EFI_STATUS</code></td><td>A UINTN. If the high bit is set, the value is an error (<code>EFI_SUCCESS</code> = 0). Use <code>EFI_ERROR(st)</code> for the check.</td></tr>
+        <tr><td><code>EFI_HANDLE</code></td><td>An opaque reference to an object that has one or more protocol interfaces.</td></tr>
+        <tr><td><code>EFI_GUID</code></td><td>A 128-bit identifier for each protocol and configuration table. Alignment: 64-bit.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="systable">
+  <h2><span class="n">4</span>The System Table</h2>
+  <p class="spec-ref">§4.3 EFI_SYSTEM_TABLE · §4.6 Configuration Tables</p>
+  <p>All services are available from the pointer in RDX. This is the layout (signature <code>0x5453595320494249</code>, "IBI SYST"):</p>
+  <pre><code><span class="k">typedef struct</span> {
+  EFI_TABLE_HEADER                 Hdr;            <span class="c">// signature, revision, CRC32</span>
+  CHAR16                           *FirmwareVendor;
+  UINT32                           FirmwareRevision;
+  EFI_HANDLE                       ConsoleInHandle;
+  EFI_SIMPLE_TEXT_INPUT_PROTOCOL   *ConIn;         <span class="c">// keyboard</span>
+  EFI_HANDLE                       ConsoleOutHandle;
+  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *ConOut;        <span class="c">// text console</span>
+  EFI_HANDLE                       StandardErrorHandle;
+  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL  *StdErr;
+  EFI_RUNTIME_SERVICES             *RuntimeServices; <span class="c">// continues after ExitBootServices</span>
+  EFI_BOOT_SERVICES                *BootServices;    <span class="c">// stops at ExitBootServices</span>
+  UINTN                            NumberOfTableEntries;
+  EFI_CONFIGURATION_TABLE          *ConfigurationTable; <span class="c">// GUID → table pointers</span>
+} <span class="a">EFI_SYSTEM_TABLE</span>;</code></pre>
+  <h3>The configuration tables — your hardware inventory</h3>
+  <p>The configuration table array (§4.6) is a list of vendor tables with GUID keys. For a bare-metal runtime, the most important entry is <strong>ACPI</strong>. Compare the GUIDs in the array. Keep the RSDP pointer <em>before</em> you call <code>ExitBootServices()</code>. Then parse the XSDT, the MADT (the CPU topology, the LAPIC, and the IOAPIC), and the HPET. This data shows you your CPU cores.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Table</th><th>GUID</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>ACPI 2.0+ RSDP (<code>EFI_ACPI_TABLE_GUID</code>)</td><td><code>8868e871-e4f1-11d3-bc22-0080c73c8881</code></td><td>The CPU topology, the interrupt controllers, and the timers</td></tr>
+        <tr><td>ACPI 1.0 RSDP (legacy)</td><td><code>eb9d2d30-2d88-11d3-9a16-0090273fc14d</code></td><td>Use only if the 2.0+ table is not available</td></tr>
+        <tr><td>Memory Attributes Table</td><td><code>dcfa911d-26eb-469f-a220-38b7dc461220</code></td><td>More precise W^X attributes for the runtime regions (§4.6.3)</td></tr>
+        <tr><td>SMBIOS 3</td><td><code>f2fd1544-9794-4a2c-992e-e5bbcf20e394</code></td><td>The hardware model and RAM data, for diagnostics</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="memory">
+  <h2><span class="n">5</span>Memory services</h2>
+  <p class="spec-ref">§7.2 Memory Allocation Services · Tables 7.5–7.6 (memory type usage)</p>
+  <p>Two allocators are available while boot services operate:</p>
+  <ul>
+    <li><code>AllocatePages(Type, MemoryType, Pages, &amp;PhysAddr)</code> allocates 4-KiB pages. The <code>Type</code> parameter is <code>AllocateAnyPages</code>, <code>AllocateMaxAddress</code> (all memory below a limit), or <code>AllocateAddress</code> (an exact address). <strong>Use this allocator for the weights.</strong> Allocate the model buffer as pages, not as pool memory.</li>
+    <li><code>AllocatePool(MemoryType, Size, &amp;Buffer)</code> allocates bytes, with 8-byte alignment. Use it for metadata and small structures.</li>
+  </ul>
+  <p>Allocate memory as <code>EfiLoaderData</code>. This is the usual type for applications. Applications must not allocate <code>EfiReservedMemoryType</code>, <code>EfiMemoryMappedIO</code>, or <code>EfiUnacceptedMemoryType</code>. The specification keeps the <code>MemoryType</code> values <code>0x80000000</code> and above for OS loaders. Give your model buffer a custom type from this range. Then the buffer is easy to find in the memory map after you take control.</p>
+  <h3>The memory map</h3>
+  <p><code>GetMemoryMap(&amp;Size, Map, &amp;MapKey, &amp;DescSize, &amp;DescVersion)</code> returns an array of descriptors (the physical start, the page count, the type, and the attributes). Obey two rules that are not obvious. Rule 1: use the returned <code>DescriptorSize</code> to move through the array. Do not use <code>sizeof(EFI_MEMORY_DESCRIPTOR)</code>, because the firmware can use a larger stride. Rule 2: the map changes each time you allocate memory. Your <code>MapKey</code> then becomes invalid. This rule causes the <code>ExitBootServices</code> procedure in Section 9.</p>
+  <p>Ownership after <code>ExitBootServices()</code> — what each region means for your runtime:</p>
+  <div class="memmap" role="img" aria-label="Memory type ownership after ExitBootServices">
+    <div class="memrow"><span class="swatch sw-free"></span><div class="body"><span class="mtype">EfiConventionalMemory</span><span class="mdesc">Free RAM: most of the machine. Use it for the KV-cache, the activations, and the heap.</span></div></div>
+    <div class="memrow"><span class="swatch sw-free"></span><div class="body"><span class="mtype">EfiLoaderCode / EfiLoaderData</span><span class="mdesc">Your image and your allocations (the weights). This memory is yours.</span></div></div>
+    <div class="memrow"><span class="swatch sw-free"></span><div class="body"><span class="mtype">EfiBootServicesCode / Data</span><span class="mdesc">This memory becomes free after the exit. Do not use it again before you stop all use of firmware data. This includes the GDT and the IDT. Load your own tables first.</span></div></div>
+    <div class="memrow"><span class="swatch sw-cond"></span><div class="body"><span class="mtype">EfiACPIReclaimMemory</span><span class="mdesc">The ACPI tables. Make this memory free only after you parse the tables.</span></div></div>
+    <div class="memrow"><span class="swatch sw-keep"></span><div class="body"><span class="mtype">EfiRuntimeServicesCode / Data</span><span class="mdesc">If you call the runtime services, keep this memory permanently. Do not touch it.</span></div></div>
+    <div class="memrow"><span class="swatch sw-keep"></span><div class="body"><span class="mtype">EfiACPINVSMemory</span><span class="mdesc">Firmware work RAM. Keep this memory permanently.</span></div></div>
+    <div class="memrow"><span class="swatch sw-never"></span><div class="body"><span class="mtype">EfiReservedMemoryType / EfiMemoryMappedIO / EfiUnacceptedMemoryType</span><span class="mdesc">This is not RAM (or the memory is not accepted, on confidential-compute platforms). Do not allocate it. Do not map it as normal memory.</span></div></div>
+  </div>
+  <div class="legend">
+    <span><i class="sw-free"></i>yours after the exit</span>
+    <span><i class="sw-cond"></i>yours after you parse it</span>
+    <span><i class="sw-keep"></i>keep</span>
+    <span><i class="sw-never"></i>do not touch</span>
+  </div>
+  <div class="callout">
+    <div class="label">Note — memory size for LLM loads</div>
+    <p>The conventional memory is divided into many regions. One large contiguous block is not guaranteed. A 7B-parameter f16 model (approximately 14 GiB) possibly cannot come from one <code>AllocatePages</code> call on some firmware. There are two solutions. Solution 1: allocate the largest block in each region, and divide the model across the blocks. Solution 2: make your own page tables after the exit. Then the physical fragments become one flat virtual area.</p>
+  </div>
+</section>
+
+<section id="protocols">
+  <h2><span class="n">6</span>Protocols, handles, and events</h2>
+  <p class="spec-ref">§2.4 Protocols · §7.3 Protocol Handler Services · §7.1 Events &amp; TPL</p>
+  <p>Each firmware function is a <strong>protocol</strong>: a structure of function pointers with a GUID name, installed on a handle. Three procedures find all of the protocols that an application needs:</p>
+  <ul>
+    <li><code>LocateProtocol(&amp;guid, NULL, &amp;iface)</code> gets one available instance. Use this call for GOP and for other protocols that have only one instance.</li>
+    <li><code>HandleProtocol(handle, &amp;guid, &amp;iface)</code> gets an interface from a handle that you have. For example, your ImageHandle gives the Loaded Image protocol. The specification prefers <code>OpenProtocol()</code> with <code>GET_PROTOCOL</code>, but <code>HandleProtocol</code> is satisfactory and more simple for an application with a short life.</li>
+    <li><code>LocateHandleBuffer(ByProtocol, &amp;guid, NULL, &amp;count, &amp;handles)</code> lists all instances (all disks, or all filesystems). Then examine each handle.</li>
+  </ul>
+  <p><strong>Events and TPLs</strong> (§7.1) are the firmware model for callbacks, without interrupts for applications. There are four priority levels (<code>TPL_APPLICATION</code> 4 &lt; <code>TPL_CALLBACK</code> 8 &lt; <code>TPL_NOTIFY</code> 16). <code>TPL_HIGH_LEVEL</code> 31 is only for the firmware. Events supply the timer callbacks. You need almost none of this. Use <code>WaitForEvent</code> on <code>ConIn-&gt;WaitForKey</code> for a "push a key" pause. Use <code>BS-&gt;Stall(microseconds)</code> for delays. Do not use the other event functions, and do not build on them. After <code>ExitBootServices()</code>, all events stop.</p>
+</section>
+
+<section id="weights">
+  <h2><span class="n">7</span>Load the model weights</h2>
+  <p class="spec-ref">§9 Loaded Image · §13.4 Simple File System · §13.5 EFI_FILE_PROTOCOL · §13.9 Block I/O</p>
+  <p>This is the standard procedure to read the GGUF file into RAM after your application starts:</p>
+  <pre><code><span class="c">// 1. Get your image data and the device that supplied it.</span>
+EFI_LOADED_IMAGE_PROTOCOL *li;
+BS-&gt;HandleProtocol(ImageHandle, &amp;LoadedImageGuid, (<span class="k">void</span>**)&amp;li);
+
+<span class="c">// 2. Get the filesystem on that device (the ESP).</span>
+EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *fs;   <span class="c">// GUID 964e5b22-6459-11d2-8e39-00a0c969723b</span>
+BS-&gt;HandleProtocol(li-&gt;DeviceHandle, &amp;SfsGuid, (<span class="k">void</span>**)&amp;fs);
+
+<span class="c">// 3. Open the root, then the file (paths use CHAR16 and backslashes).</span>
+EFI_FILE_PROTOCOL *root, *f;
+fs-&gt;OpenVolume(fs, &amp;root);
+root-&gt;Open(root, &amp;f, L<span class="a">"\\model\\weights.gguf"</span>, EFI_FILE_MODE_READ, 0);
+
+<span class="c">// 4. Get the size with GetInfo(EFI_FILE_INFO). Then read blocks into the</span>
+<span class="c">//    AllocatePages buffer.</span>
+f-&gt;Read(f, &amp;chunk, buf + off);         <span class="c">// loop; the firmware can limit each read</span></code></pre>
+  <div class="callout warn">
+    <div class="label">Warning — the 4-GiB limit</div>
+    <p>FAT is the only filesystem that the firmware must support (§13.3). The maximum FAT32 file size is 4 GiB minus 1 byte. Large models are larger than this limit. These are your options:</p>
+    <p><strong>(a) Divide the weights</strong> into files of less than 4 GiB. Attach the parts together when you load them. This is the most simple option and operates on all platforms. <strong>(b) Use a raw GPT partition.</strong> Make a partition with your own type-GUID. Find its handle with <code>EFI_BLOCK_IO_PROTOCOL</code> (§13.9). Examine <code>Media-&gt;LastBlock</code> and the partition entries. Use <code>ReadBlocks</code> to read the weights directly into RAM. This is the fastest option and uses no filesystem. <strong>(c)</strong> Do not use an NTFS or ext4 driver. Such drivers are not standard.</p>
+  </div>
+  <p>Speed note: read the file in large blocks (tens of MiB) directly into the destination pages. Each call has a large overhead, and firmware storage stacks are slow. On NVMe, Block I/O usually reads hundreds of MB/s. Use this number when you calculate the time from cold boot to the first token.</p>
+</section>
+
+<section id="console">
+  <h2><span class="n">8</span>The console and the framebuffer</h2>
+  <p class="spec-ref">§12.3 Simple Text Input · §12.4 Simple Text Output · §12.9 Graphics Output Protocol</p>
+  <p><strong>Text:</strong> <code>ConOut-&gt;OutputString(ConOut, L"tokens/s: ...\r\n")</code> writes UCS-2 text with CR+LF, and operates immediately. <code>ConIn-&gt;ReadKeyStroke</code> polls the keyboard. Use these two services for output and input while boot services operate. Both services stop at <code>ExitBootServices()</code>.</p>
+  <p><strong>Graphics:</strong> the Graphics Output Protocol (GUID <code>9042a9de-23dc-4a38-96fb-7aded080516a</code>) continues to operate after you take control, because it gives you a plain linear framebuffer:</p>
+  <ul>
+    <li><code>Mode-&gt;FrameBufferBase</code> is the physical address of the pixels. You can write to this address directly, at all times.</li>
+    <li><code>Mode-&gt;Info-&gt;PixelFormat</code> is usually <code>PixelBlueGreenRedReserved8BitPerColor</code> (BGRX, little-endian, 32-bit).</li>
+    <li><code>Mode-&gt;Info-&gt;PixelsPerScanLine</code> is the true stride. It can be more than <code>HorizontalResolution</code>. If you use the width as the stride, the image becomes distorted. This is a frequent error.</li>
+    <li>Select a mode with <code>QueryMode</code> and <code>SetMode</code> <em>before</em> you exit boot services. You cannot change the mode after the exit.</li>
+  </ul>
+  <p>For the LLM chat UI, do these steps. Read the GOP data. Set your mode. Record the base address, the stride, and the pixel format. Then draw your own text into the framebuffer. Include a bitmap font in your application, because the firmware fonts are not available after the exit. This is the full display driver.</p>
+</section>
+
+<section id="exit">
+  <h2><span class="n">9</span>ExitBootServices — the final step</h2>
+  <p class="spec-ref">§7.4.6 ExitBootServices()</p>
+  <p>This is the exact sequence. The retry rule causes many errors:</p>
+  <pre><code><span class="c">// All firmware tasks must be complete at this point:</span>
+<span class="c">// the weights are loaded, the GOP mode is set, the ACPI RSDP is kept,</span>
+<span class="c">// and the watchdog timer is off.</span>
+<span class="k">for</span> (;;) {
+    st = BS-&gt;GetMemoryMap(&amp;size, map, &amp;key, &amp;dsize, &amp;dver);  <span class="c">// new map + key</span>
+    <span class="c">// Do NOT allocate between these two calls. An allocation makes the key invalid.</span>
+    st = BS-&gt;ExitBootServices(ImageHandle, key);
+    <span class="k">if</span> (st == EFI_SUCCESS) <span class="k">break</span>;
+    <span class="c">// EFI_INVALID_PARAMETER: a timer or event made an allocation. Try again.</span>
+    <span class="c">// After a failed attempt, call only GetMemoryMap and ExitBootServices.</span>
+}</code></pre>
+  <p>Important detail: allocate the map buffer <em>before</em> the loop, and make the buffer larger than necessary. The specification gives this guidance, because the allocation itself increases the size of the map. After success:</p>
+  <ul>
+    <li><span class="tag gone">gone</span>&nbsp; All boot services, all protocol interfaces, and all events stop. ConIn, ConOut, and StdErr stop (the fields become NULL). The firmware timer and the watchdog timer stop.</li>
+    <li><span class="tag boot">yours</span>&nbsp; You control each core, all conventional memory, all boot-services memory, the GOP framebuffer (as plain memory), and all interrupts.</li>
+    <li><span class="tag rt">remains</span>&nbsp; The runtime services table (§8) continues: <code>GetTime</code>, <code>ResetSystem</code>, the variable services (refer to the RT-properties table, §4.6.2), and <code>SetVirtualAddressMap</code>. If you keep the identity map for the runtime regions, <code>SetVirtualAddressMap</code> is not necessary. This procedure is recommended.</li>
+  </ul>
+  <p>The memory map from the exit is your permanent inventory of the physical RAM. Keep it.</p>
+</section>
+
+<section id="after">
+  <h2><span class="n">10</span>After the firmware — the tasks for your runtime</h2>
+  <p class="spec-ref">§2.3.4 (state rules) · ACPI spec · Intel SDM (not in the UEFI specification; listed because the specification stops here)</p>
+  <p>The specification defines the environment only up to the handover. After the handover, your runtime must do these tasks, in this approximate sequence:</p>
+  <ol>
+    <li><strong>The GDT and the IDT:</strong> load your own tables immediately. The firmware tables are in memory that you can release. Install the exception handlers first. A page-fault handler that writes to the framebuffer saves days of work.</li>
+    <li><strong>SIMD for the inference kernels:</strong> the firmware makes sure of only the SSE state. Use <code>CPUID</code> to find AVX2 or AVX-512. Set <code>CR4.OSXSAVE</code>. Then use <code>XSETBV</code> to set the x87, SSE, and AVX (and ZMM) bits in XCR0. If you do not do this step, each AVX instruction causes a <code>#UD</code> fault.</li>
+    <li><strong>Timers:</strong> the firmware timer is stopped. Calibrate the TSC (with CPUID leaf 0x15, or with the HPET from ACPI) to measure tokens/second and to do the scheduling.</li>
+    <li><strong>Multicore:</strong> parse the MADT to get the LAPIC IDs. Then send INIT–SIPI–SIPI to start the APs. An easier alternative: use the PI <code>EFI_MP_SERVICES_PROTOCOL</code> <em>before</em> the exit to hold the APs in your own loop. Then you keep the firmware AP configuration. Matrix multiplication needs all of the cores.</li>
+    <li><strong>Page tables (optional, but probable):</strong> make your own tables. They connect the physical RAM fragments into one flat virtual area for the model. They also permit 2-MiB and 1-GiB pages. Fewer TLB misses give a measurable speed increase for large-tensor reads.</li>
+    <li><strong>Cache and write-combining:</strong> when you own the page tables, map the GOP framebuffer as WC with the PAT. Direct UC writes are too slow for a chat UI.</li>
+  </ol>
+</section>
+
+<section id="secureboot">
+  <h2><span class="n">11</span>Secure Boot</h2>
+  <p class="spec-ref">§32 Secure Boot and Driver Signing</p>
+  <p>When Secure Boot is on, the firmware launches only images with a signature chain to a certificate in the <code>db</code> variable. For this project, do these steps. <strong>On development machines, set Secure Boot to OFF</strong> in the setup menu, or run OVMF without it. <strong>On hardware that you ship or keep, install your own PK, KEK, and db keys.</strong> Then sign the application (Authenticode on PE32+, §32.2). QEMU with the default OVMF build does not use Secure Boot. Do not use a signature from the Microsoft third-party CA. That path (shim) is for Linux distributions and gives no advantage here.</p>
+</section>
+
+<section id="toolchain">
+  <h2><span class="n">12</span>Toolchain notes for this repository</h2>
+  <p class="spec-ref">edk2 checked out at <code>edk/edk2</code> · headers under <code>MdePkg/Include</code></p>
+  <p>The edk2 <em>build system</em> is not necessary. The edk2 headers alone give you each structure and GUID in this guide, equal to the specification (they include the <code>EFI_2_110</code> revision defines). Two good configurations:</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Approach</th><th>How</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>clang + lld, freestanding</strong></td>
+          <td><code>clang -target x86_64-unknown-windows -ffreestanding -fshort-wchar -mno-red-zone -I edk/edk2/MdePkg/Include ...</code> then <code>lld-link /subsystem:efi_application /entry:efi_main</code></td>
+          <td>No dependencies, full control, and the correct ABI by default. Recommended for baremetallm.</td>
+        </tr>
+        <tr>
+          <td><strong>GNU toolchain + gnu-efi</strong></td>
+          <td>gcc uses <code>ms_abi</code> wrappers. The build links a small crt0 and a relocation shim. objcopy converts the output.</td>
+          <td>This operates, but the ABI wrapper layer adds complexity that clang does not need.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>These flags are mandatory for each compiler: <code>-fshort-wchar</code> (for CHAR16 literals) and <code>-mno-red-zone</code> (firmware interrupts can overwrite the red zone). Do not let the compiler make code above baseline SSE before you enable XCR0. Use <code>-mno-avx</code> for the boot-path code. Test loop: <code>qemu-system-x86_64 -M q35 -m 32G -cpu host -enable-kvm -drive if=pflash,format=raw,readonly=on,file=OVMF_CODE.fd ...</code> with your application as <code>\EFI\BOOT\BOOTX64.EFI</code> in a FAT directory, passed with <code>-drive format=raw,file=fat:rw:esp/</code>.</p>
+</section>
+
+<section id="checklist">
+  <h2><span class="n">13</span>Boot checklist — from efi_main to the first token</h2>
+  <ol class="checklist">
+    <li><strong>Disable the watchdog timer</strong> — <code>SetWatchdogTimer(0,0,0,NULL)</code>. Five minutes is not sufficient to load 30 GiB of weights.</li>
+    <li><strong>Write a start message</strong> with <code>ConOut</code>. This shows that the ABI, the linking, and the load path are correct, before more difficult errors can occur.</li>
+    <li><strong>Keep the ACPI RSDP pointer</strong> from the configuration table array.</li>
+    <li><strong>Read the GOP modes and set one.</strong> Record FrameBufferBase, the stride, and the pixel format.</li>
+    <li><strong>Allocate the model buffer</strong> with <code>AllocatePages</code>. Use a custom memory type of 0x80000000 or above, so that the buffer is easy to find.</li>
+    <li><strong>Load the weights</strong> — divided files through the Simple File System, or a raw partition through Block I/O.</li>
+    <li><strong>(Optional) Hold the APs</strong> in your own mailbox loop, with the PI MP Services.</li>
+    <li><strong>Call GetMemoryMap, then ExitBootServices.</strong> Use the retry loop. Do not allocate memory between the two calls.</li>
+    <li><strong>Take control of the machine.</strong> Load the GDT, the IDT, and the exception handlers. Set XCR0 for AVX. Calibrate the TSC. Start or release the APs. Make the page tables.</li>
+    <li><strong>Run the inference.</strong> The console output is the pixels that you draw. The input comes from your own keyboard driver (PS/2 emulation or USB). The keyboard is the most difficult device after the exit.</li>
+  </ol>
+</section>
+
+<footer>
+  <p><strong>Sources:</strong> <a href="https://uefi.org/specs/UEFI/2.11/">UEFI Specification 2.11 (HTML)</a> — chapters 2, 4, 7, 8, 9, 12, and 13, read in archived copies. The structure layouts, the GUIDs, and the revision defines were compared with the edk2 checkout in this repository (<code>MdePkg/Include</code>). Release context: <a href="https://uefi.org/specifications">uefi.org/specifications</a> and the UEFI Forum announcement of UEFI 2.11 / PI 1.9 (December 2024). The <code>EFI_MP_SERVICES_PROTOCOL</code> items (Section 10, step 4) are PI 1.9 material, not UEFI 2.11. Written 2026-08-28 for the baremetallm project. Rewritten in ASD-STE100 Simplified Technical English, 2026-08-31.</p>
+</footer>
+
+</main>
+</div>
