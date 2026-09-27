@@ -31,17 +31,10 @@
 
 [PcdsFixedAtBuild]
   gBareLLMConfigGuid.PcdBareLLMMaxMemory|0x0000000080000000|UINT64|0x00000001
-
   gBareLLMConfigGuid.PcdBareLLMMaxContextTokens|4096|UINT32|0x00000002
-
   gBareLLMConfigGuid.PcdBareLLMMaxOutputTokens|512|UINT32|0x00000003
-
   gBareLLMConfigGuid.PcdBareLLMMaxConnections|4|UINT32|0x00000004
-
   gBareLLMConfigGuid.PcdBareLLMDebug|TRUE|BOOLEAN|0x00000005
-
   gBareLLMConfigGuid.PcdBareLLMConsoleMode|TRUE|BOOLEAN|0x00000006
-
   gBareLLMConfigGuid.PcdBareLLMModelPath|L"FS0:\\Models\\model.bllm"|VOID*|0x00000007
-
   gBareLLMConfigGuid.PcdBareLLMTokenizerPath|L"FS0:\\Models\\tokenizer.btl"|VOID*|0x00000008

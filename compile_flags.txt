@@ -1,0 +1,13 @@
+-xc
+-std=c++23
+-target
+x86_64-unknown-linux-gnu
+-ffreestanding
+-fshort-wchar
+-nostdinc
+-DMDE_CPU_X64
+-Iedk/edk2/MdePkg/Include
+-Iedk/edk2/MdePkg/Include/X64
+-Isrc/Include
+-include
+src/Build/BareLLMServer/DEBUG_GCC/X64/Application/BareLLMServer/BareLLMServer/DEBUG/AutoGen.h

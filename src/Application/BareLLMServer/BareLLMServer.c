@@ -6,6 +6,20 @@
 
 #include <Library/UefiBootServicesTableLib.h>
 
+typedef struct {
+	UINT32 Rows;
+	UINT32 Cols;
+	INT32  *Data;
+} Matrix;
+
+UINTN ReadNumber(void) {
+	EFI_INPUT_KEY Key;
+	UINTN EventIndex;
+	UINTN Number = 0;
+
+	gBS->WaitForEvent(1, gST->ConIn->WaitForKey, &EventIndex);
+}
+
 EFI_STATUS
 EFIAPI
 UefiMain (IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable) {
@@ -17,9 +31,12 @@ UefiMain (IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable) {
 		Print(L"Hello World\r\n");
 	}
 
-	gBS->WaitForEvent(1, &gST->ConIn->WaitForKey, NULL);
+	//simple NN
+	
+	// weight matrix
+	Matrix weights1;
 
-	EFI_INPUT_KEY Key;
-	gST->ConIn->ReadKeyStroke(gST->ConIn, &Key);
+	weights1.Rows = 0;
+
 	return EFI_SUCCESS;
 }
