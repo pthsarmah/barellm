@@ -1,3 +1,4 @@
+#include "ProcessorBind.h"
 #include "Protocol/SimpleTextIn.h"
 #include "Uefi/UefiBaseType.h"
 #include <Uefi.h>
@@ -8,6 +9,8 @@
 #include <Library/MemoryAllocationLib.h>
 
 #include <Library/UefiBootServicesTableLib.h>
+
+#define EXP_PRECISION 30
 
 typedef struct {
 	UINT32 Rows;
@@ -224,8 +227,191 @@ static const UINT8 IrisLabels[150] = {
     2,2,2,2,2,2,2,2,2,2
 };
 
-float Dot(Matrix X, Matrix Y) {
+double ExpApprox(double x)
+{
+	int negative = 1;
+	if (x < 0) { negative = 1; x = -x; }
 
+	/*Reductions help to converge exponentials faster
+	 * e^10 = e ^ (10*16/16) = e^((10/16)*16) = (e^(0.625))^16
+	 * e^0.625 converges faster
+	 * Then all we need is faster squaring e^0.625 --s--> e^1.25 --s--> e^2.5 --...-> e^10
+	*/
+	int reductions = 0;
+	while (x > 1) {
+		x *= 0.5;
+		reductions++;
+	}
+
+	double term = 1.0;
+	double sum = 1.0;
+
+	for (int i=0; i<=EXP_PRECISION; i++) {
+		term *= x / (double)i;
+		sum += term;
+	}
+
+	for (int i=0; i<reductions; i++) {
+		sum *= sum;
+	}
+
+	if (negative) return 1.0 / sum;
+
+	return sum;
+}
+
+double LogApprox(double x) {
+	if (x <= 0) return -100.0;
+
+	int k = 0;
+
+	while (x > 1.5) {
+		x *= 0.5;
+		k++;
+	}
+
+	while (x < 0.75) {
+		x *= 2.0;
+		k--;
+	}
+
+	double z = (x - 1.0) / (x + 1.0);
+	double z2 = z * z;
+
+	double term = z;
+	double sum = 0.0;
+
+	for (UINT32 n = 1; n <= 30; n++) {
+		sum += term / (double)(2 * n - 1);
+		term *= z2;
+	}
+
+	const double LN2 = 0.6931471805599453;
+
+	return 2.0 * sum + k * LN2;
+}
+
+Matrix Multiply(Matrix *X, Matrix *Y) {
+	UINT32 n = X->Rows;
+	UINT32 m = Y->Cols;
+
+	Matrix res;
+	res.Rows = n;
+	res.Cols = m;
+
+	for (UINTN i=0; i<n; i++) {
+		for (UINTN k=0; k<n; k++) {
+			double x = X->Data[i * X->Cols + k];
+			for (UINTN j=0; j<n; ++j) {
+				res.Data[i * res.Cols + j] = x * Y->Data[k * Y->Cols + j];
+			}
+		}
+	}
+
+	return res;
+}
+
+void Softmax(Matrix *Z, Matrix *P)
+{
+	for (UINT32 i = 0; i < Z->Rows; i++) {
+
+		double maxValue = Z->Data[i * Z->Cols];
+
+		for (UINT32 j = 1; j < Z->Cols; j++) {
+			double value = Z->Data[i * Z->Cols + j];
+			if (value > maxValue)
+				maxValue = value;
+		}
+
+		double sum = 0.0;
+
+		for (UINT32 j = 0; j < Z->Cols; j++) {
+			UINT32 index = i * Z->Cols + j;
+			P->Data[index] =
+				ExpApprox(Z->Data[index] - maxValue);
+
+			sum += P->Data[index];
+		}
+
+		for (UINT32 j = 0; j < Z->Cols; j++) {
+			UINT32 index = i * Z->Cols + j;
+			P->Data[index] /= sum;
+		}
+	}
+}
+
+double CategoricalCrossEntropy(Matrix *Y, Matrix *P)
+{
+	double loss = 0.0;
+
+	const double EPSILON = 1e-12;
+
+	for (UINT32 i = 0; i < Y->Rows; i++) {
+		for (UINT32 j = 0; j < Y->Cols; j++) {
+
+			UINT32 index = i * Y->Cols + j;
+
+			double y = Y->Data[index];
+			double p = P->Data[index];
+
+			/*
+			 * Prevent log(0)
+			*/
+			if (p < EPSILON)
+				p = EPSILON;
+
+			loss -= y * LogApprox(p);
+		}
+	}
+
+	return loss / (double)Y->Rows;
+}
+
+void UpdateWeights(
+    Matrix *X,
+    Matrix *Y,
+    Matrix *P,
+    Matrix *weights,
+    double alpha
+)
+{
+	/*
+	 * dW = X^T (P - Y) / N
+	 */
+
+	UINT32 N = X->Rows;
+	UINT32 inputFeatures = X->Cols;
+	UINT32 classes = weights->Cols;
+
+	for (UINT32 i = 0; i < inputFeatures; i++) {
+
+		for (UINT32 j = 0; j < classes; j++) {
+
+			double gradient = 0.0;
+
+			for (UINT32 sample = 0; sample < N; sample++) {
+
+				double x =
+					X->Data[sample * X->Cols + i];
+
+				double prediction =
+					P->Data[sample * P->Cols + j];
+
+				double target =
+					Y->Data[sample * Y->Cols + j];
+
+				gradient += x * (prediction - target);
+			}
+
+			gradient /= (double)N;
+
+			UINT32 weightIndex =
+				i * weights->Cols + j;
+
+			weights->Data[weightIndex] -=
+				alpha * gradient;
+		}
+	}
 }
 
 /*
@@ -238,6 +424,27 @@ float Dot(Matrix X, Matrix Y) {
 */
 Matrix NNTrain(Matrix X, Matrix Y, float alpha, UINTN epochs) {
 	Matrix weights;
+	weights.Rows = X.Cols;
+	weights.Cols = 3;
+
+	weights.Data = AllocatePool(weights.Rows * weights.Cols * sizeof(double));
+
+	for (UINT32 i=0; i<weights.Rows; i++) {
+		for (UINT32 j=0; j<weights.Cols; j++) {
+			weights.Data[i * weights.Cols + j] = 0;
+		}
+	}
+
+	Matrix layer1 = Multiply(&X, &weights);
+
+	for (UINT32 i=0; i<layer1.Rows; i++) {
+		for (UINT32 j=0; j<layer1.Cols; j++) {
+			UINT32 Index = i * layer1.Cols + j;
+		}
+	}
+
+	//backprop
+
 	return weights;
 }
 
